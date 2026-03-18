@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
- <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Eid Gift From Hayat</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -649,15 +649,16 @@
       <div class="star-small"></div>
       <div class="star-small"></div>
       <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="crescent-mask">
+            <circle cx="40" cy="40" r="24" fill="white"/>
+            <circle cx="52" cy="36" r="18" fill="black"/>
+          </mask>
+        </defs>
         <!-- Glow -->
         <circle class="crescent-glow-circle" cx="40" cy="40" r="32" fill="rgba(240,208,128,0.07)"/>
-        <!-- Proper crescent: clip a smaller offset circle out of a full circle -->
-        <path class="crescent-path"
-          d="M40,15
-             a25,25 0 1,1 0,50
-             a18,18 0 1,0 0,-50
-             Z"
-          fill="#f0d080"/>
+        <!-- Crescent using mask -->
+        <circle class="crescent-path" cx="40" cy="40" r="24" fill="#f0d080" mask="url(#crescent-mask)"/>
       </svg>
     </div>
 
@@ -922,10 +923,10 @@
     card.style.setProperty('--t-accentDim', theme.accentDim);
 
     // Crescent fill
-    document.querySelectorAll('.crescent-path').forEach(el => el.style.fill = theme.accentLight);
-    document.querySelectorAll('.crescent-star-poly').forEach(el => el.style.fill = theme.accentLight);
-    document.querySelectorAll('.crescent-glow-circle').forEach(el =>
-      el.style.fill = theme.accentLight.replace(')', ',0.07)').replace('rgb', 'rgba'));
+    document.querySelectorAll('.crescent-path').forEach(el => {
+      el.style.fill = theme.accentLight;
+      el.setAttribute('fill', theme.accentLight);
+    });
 
     // Arabic greeting
     document.getElementById('arabic-greeting-el').style.color = theme.accent;
