@@ -1009,6 +1009,9 @@
     const theme = getThemeForRoll(roll);
     applyTheme(theme);
 
+    // Log this visit silently
+    logVisit(roll, name);
+
     // Animate in
     wrapper.classList.remove('visible');
     requestAnimationFrame(() => {
@@ -1016,6 +1019,20 @@
         wrapper.classList.add('visible');
       });
     });
+  }
+
+  async function logVisit(roll, name) {
+    try {
+      const ip = _ip || 'unknown';
+      await sbFetch('visit_logs', { method:'POST', body:JSON.stringify({roll, ip}) });
+      const cur = await sbFetch('app_stats?id=eq.1&select=total_card_views');
+      if (cur && cur[0]) {
+        await sbFetch('app_stats?id=eq.1', {
+          method:'PATCH',
+          body:JSON.stringify({ total_card_views:(cur[0].total_card_views||0)+1, updated_at:new Date().toISOString() })
+        });
+      }
+    } catch(e){}
   }
 
   async function downloadCard() {
@@ -1077,62 +1094,110 @@
     }
   }
 
-  // ── Admin Dashboard ───────────────────────────────────────────
-  const ADMIN_PASSWORD = 'hayat2421';
-  let adminUnlocked = false;
-  let supabaseEntries = {}; // tracks which rolls came from Supabase
+  // ── Supabase Auth + Admin ─────────────────────────────────────
+  let _au = false;
+  let _sb = {};
+  let _ip = null;
+
+  // Fetch IP once on load
+  (async()=>{ try{ const r=await fetch('https://api.ipify.org?format=json'); const d=await r.json(); _ip=d.ip; }catch(e){} })();
+
+  // Increment page impression on load
+  (async()=>{
+    try {
+      const cur = await sbFetch('app_stats?id=eq.1&select=total_impressions');
+      if (cur && cur[0]) {
+        await sbFetch('app_stats?id=eq.1', {
+          method:'PATCH',
+          body: JSON.stringify({ total_impressions: (cur[0].total_impressions||0)+1, updated_at: new Date().toISOString() })
+        });
+      }
+    } catch(e){}
+  })();
+
+  function _oa() {
+    document.getElementById('_am').classList.add('open');
+    if (!_au) setTimeout(()=>document.getElementById('_pi').focus(), 100);
+    else _ld();
+  }
+
+  function _ca() { document.getElementById('_am').classList.remove('open'); }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.getElementById('_am').addEventListener('click', function(e){ if(e.target===this) _ca(); });
+  });
+
+  async function _cp() {
+    const u = document.getElementById('_ui').value.trim();
+    const p = document.getElementById('_pi').value.trim();
+    const err = document.getElementById('_pe');
+    if (!u || !p) { err.textContent = 'Enter username and password.'; return; }
+    err.textContent = 'Verifying…';
+    try {
+      const rows = await sbFetch('admin_credentials?id=eq.1&select=username,password');
+      if (rows && rows[0] && rows[0].username === u && rows[0].password === p) {
+        _au = true;
+        document.getElementById('_ps').style.display = 'none';
+        document.getElementById('_ds').classList.add('active');
+        _ld();
+      } else {
+        err.textContent = 'Wrong credentials. Try again.';
+        document.getElementById('_pi').value = '';
+        document.getElementById('_pi').focus();
+      }
+    } catch(e) { err.textContent = 'Connection error. Try again.'; }
+  }
 
   function isSeniorEntry(roll) {
-    // If it's in supabase entries, use stored type
-    if (supabaseEntries[roll]) return supabaseEntries[roll] === 'senior';
+    if (_sb[roll]) return _sb[roll] === 'senior';
     return !roll.startsWith('2421');
   }
 
-  function openAdmin() {
-    document.getElementById('admin-modal').classList.add('open');
-    if (!adminUnlocked) setTimeout(() => document.getElementById('pw-input').focus(), 100);
-    else { loadDashboard(); }
-  }
-
-  function closeAdmin() {
-    document.getElementById('admin-modal').classList.remove('open');
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('admin-modal').addEventListener('click', function(e) {
-      if (e.target === this) closeAdmin();
-    });
-  });
-
-  function checkPassword() {
-    const val = document.getElementById('pw-input').value;
-    if (val === ADMIN_PASSWORD) {
-      adminUnlocked = true;
-      document.getElementById('pw-screen').style.display = 'none';
-      document.getElementById('dash-screen').classList.add('active');
-      loadDashboard();
-    } else {
-      document.getElementById('pw-error').textContent = 'Wrong password. Try again.';
-      document.getElementById('pw-input').value = '';
-      document.getElementById('pw-input').focus();
-    }
-  }
-
-  async function loadDashboard() {
-    const list = document.getElementById('entry-list');
-    list.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text-dim);font-style:italic;">Loading…</div>';
+  async function _ld() {
+    document.getElementById('entry-list').innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text-dim);font-style:italic;">Loading…</div>';
     try {
-      const rows = await sbFetch('roll_entries?select=roll,name,type&order=roll.asc');
-      supabaseEntries = {};
-      if (rows) rows.forEach(r => {
-        supabaseEntries[r.roll] = r.type;
-        rollData[r.roll] = r.name;
-      });
-      renderList();
-      updateStats();
+      const [rows, stats, logs] = await Promise.all([
+        sbFetch('roll_entries?select=roll,name,type&order=roll.asc'),
+        sbFetch('app_stats?id=eq.1&select=total_impressions,total_card_views'),
+        sbFetch('visit_logs?select=roll,ip,visited_at&order=visited_at.desc&limit=200')
+      ]);
+      _sb = {};
+      if (rows) rows.forEach(r => { _sb[r.roll] = r.type; rollData[r.roll] = r.name; });
+      _rl(); _us();
+      // Stats
+      if (stats && stats[0]) {
+        document.getElementById('stat-imp').textContent = stats[0].total_impressions || 0;
+        document.getElementById('stat-cards').textContent = stats[0].total_card_views || 0;
+      }
+      // Visit log
+      _rvl(logs);
     } catch(e) {
-      list.innerHTML = '<div style="padding:1rem;text-align:center;color:#e07070;font-style:italic;">Failed to load. Check connection.</div>';
+      document.getElementById('entry-list').innerHTML = '<div style="padding:1rem;text-align:center;color:#e07070;font-style:italic;">Failed to load.</div>';
     }
+  }
+
+  function _rvl(logs) {
+    const vlist = document.getElementById('visit-list');
+    if (!logs || !logs.length) {
+      vlist.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text-dim);font-style:italic;">No visits yet</div>';
+      document.getElementById('stat-visits').textContent = 0;
+      document.getElementById('stat-unique').textContent = 0;
+      return;
+    }
+    document.getElementById('stat-visits').textContent = logs.length;
+    document.getElementById('stat-unique').textContent = new Set(logs.map(l=>l.roll)).size;
+    vlist.innerHTML = logs.map(log => {
+      const name = rollData[log.roll] || log.roll;
+      const time = new Date(log.visited_at).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+      return `<div class="entry-row">
+        <div class="entry-row-info">
+          <span class="entry-roll">${log.roll}</span>
+          <span class="entry-name">${name}</span>
+          <span class="entry-tag builtin" style="font-size:0.72rem;">${log.ip||'—'}</span>
+        </div>
+        <span style="font-size:0.78rem;color:var(--text-dim);font-style:italic;white-space:nowrap;">${time}</span>
+      </div>`;
+    }).join('');
   }
 
   async function addEntry() {
@@ -1140,112 +1205,106 @@
     const name = document.getElementById('new-name').value.trim();
     const type = document.getElementById('new-type').value;
     const fb = document.getElementById('add-feedback');
-
-    if (!roll || !name) {
-      fb.textContent = 'Please fill in both roll and name.'; fb.className = 'dash-add-feedback err'; return;
-    }
-
-    fb.textContent = 'Saving…'; fb.className = 'dash-add-feedback';
-
+    if (!roll || !name) { fb.textContent='Fill both fields.'; fb.className='dash-add-feedback err'; return; }
+    fb.textContent='Saving…'; fb.className='dash-add-feedback';
     try {
-      await sbFetch('roll_entries', {
-        method: 'POST',
-        headers: { 'Prefer': 'resolution=merge-duplicates' },
-        body: JSON.stringify({ roll, name, type })
-      });
-      rollData[roll] = name;
-      supabaseEntries[roll] = type;
-      fb.textContent = `✓ Added: ${roll} → ${name}`; fb.className = 'dash-add-feedback ok';
-      document.getElementById('new-roll').value = '';
-      document.getElementById('new-name').value = '';
+      await sbFetch('roll_entries', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:JSON.stringify({roll,name,type}) });
+      rollData[roll]=name; _sb[roll]=type;
+      fb.textContent=`✓ Added: ${roll} → ${name}`; fb.className='dash-add-feedback ok';
+      document.getElementById('new-roll').value='';
+      document.getElementById('new-name').value='';
       document.getElementById('new-roll').focus();
-      renderList(); updateStats();
-      setTimeout(() => { fb.textContent = ''; }, 3000);
-    } catch(e) {
-      fb.textContent = 'Failed to save. Try again.'; fb.className = 'dash-add-feedback err';
-    }
+      _rl(); _us();
+      setTimeout(()=>{ fb.textContent=''; },3000);
+    } catch(e) { fb.textContent='Failed. Try again.'; fb.className='dash-add-feedback err'; }
   }
 
   async function deleteEntry(roll) {
-    if (!supabaseEntries[roll]) return; // can't delete built-ins
+    if (!_sb[roll]) return;
     try {
-      await sbFetch(`roll_entries?roll=eq.${encodeURIComponent(roll)}`, { method: 'DELETE' });
-      delete rollData[roll];
-      delete supabaseEntries[roll];
-      renderList(); updateStats();
-    } catch(e) {
-      alert('Failed to delete. Try again.');
-    }
+      await sbFetch(`roll_entries?roll=eq.${encodeURIComponent(roll)}`, {method:'DELETE'});
+      delete rollData[roll]; delete _sb[roll]; _rl(); _us();
+    } catch(e) { alert('Failed to delete.'); }
   }
 
-  function updateStats() {
+  function _us() {
     const all = Object.keys(rollData);
     document.getElementById('stat-total').textContent = all.length;
-    document.getElementById('stat-friends').textContent = all.filter(r => !isSeniorEntry(r)).length;
-    document.getElementById('stat-seniors').textContent = all.filter(r => isSeniorEntry(r)).length;
+    document.getElementById('stat-friends').textContent = all.filter(r=>!isSeniorEntry(r)).length;
+    document.getElementById('stat-seniors').textContent = all.filter(r=>isSeniorEntry(r)).length;
   }
 
-  function renderList() {
-    const query = (document.getElementById('dash-search')?.value || '').toLowerCase();
-    const filtered = Object.keys(rollData).sort()
-      .filter(r => r.includes(query) || rollData[r].toLowerCase().includes(query));
-
+  function _rl() {
+    const query = (document.getElementById('dash-search')?.value||'').toLowerCase();
+    const filtered = Object.keys(rollData).sort().filter(r=>r.includes(query)||rollData[r].toLowerCase().includes(query));
     const list = document.getElementById('entry-list');
-    if (!filtered.length) {
-      list.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text-dim);font-style:italic;">No entries found</div>';
-      return;
-    }
-    list.innerHTML = filtered.map(roll => {
-      const name = rollData[roll];
-      const isSupabase = !!supabaseEntries[roll];
-      const senior = isSeniorEntry(roll);
-      const tagLabel = isSupabase ? (senior ? 'Senior' : 'Friend') : 'Built-in';
-      const tagClass = isSupabase ? (senior ? 'senior' : 'friend') : 'builtin';
-      return `<div class="entry-row">
-        <div class="entry-row-info">
-          <span class="entry-roll">${roll}</span>
-          <span class="entry-name">${name}</span>
-          <span class="entry-tag ${tagClass}">${tagLabel}</span>
-        </div>
-        <button class="btn-delete" onclick="deleteEntry('${roll}')"
-          ${isSupabase ? '' : 'disabled title="Built-in entries cannot be deleted"'}>✕</button>
-      </div>`;
+    if (!filtered.length) { list.innerHTML='<div style="padding:1rem;text-align:center;color:var(--text-dim);font-style:italic;">No entries found</div>'; return; }
+    list.innerHTML = filtered.map(roll=>{
+      const name=rollData[roll], isSb=!!_sb[roll], senior=isSeniorEntry(roll);
+      const tl=isSb?(senior?'Senior':'Friend'):'Built-in', tc=isSb?(senior?'senior':'friend'):'builtin';
+      return `<div class="entry-row"><div class="entry-row-info"><span class="entry-roll">${roll}</span><span class="entry-name">${name}</span><span class="entry-tag ${tc}">${tl}</span></div><button class="btn-delete" onclick="deleteEntry('${roll}')" ${isSb?'':'disabled'}>✕</button></div>`;
     }).join('');
   }
+
+  async function _scp() {
+    const nu = document.getElementById('new-username').value.trim();
+    const np = document.getElementById('new-password').value.trim();
+    const fb = document.getElementById('cred-feedback');
+    if (!nu || !np) { fb.textContent='Fill both fields.'; fb.className='dash-add-feedback err'; return; }
+    fb.textContent='Saving…'; fb.className='dash-add-feedback';
+    try {
+      await sbFetch('admin_credentials?id=eq.1', { method:'PATCH', body:JSON.stringify({username:nu, password:np}) });
+      fb.textContent='✓ Credentials updated!'; fb.className='dash-add-feedback ok';
+      document.getElementById('new-username').value='';
+      document.getElementById('new-password').value='';
+      setTimeout(()=>{ fb.textContent=''; },3000);
+    } catch(e) { fb.textContent='Failed to update.'; fb.className='dash-add-feedback err'; }
+  }
 </script>
-<!-- Admin button -->
-<button class="admin-btn" onclick="openAdmin()" title="Admin Dashboard">⚙</button>
+
+<!-- Hidden admin trigger: triple-click the footer -->
+<div id="_at" style="position:fixed;bottom:0;left:0;width:100%;height:28px;z-index:99;cursor:default;" ondblclick="_oa()"></div>
 
 <!-- Admin modal -->
-<div class="modal-overlay" id="admin-modal">
+<div class="modal-overlay" id="_am">
   <div class="modal">
     <div class="modal-title">
-      <span>Admin Dashboard</span>
-      <button class="modal-close" onclick="closeAdmin()">✕</button>
+      <span>🌙 Admin Dashboard</span>
+      <button class="modal-close" onclick="_ca()">✕</button>
     </div>
 
-    <!-- Password screen -->
-    <div class="pw-screen" id="pw-screen">
-      <p>Enter the admin password to continue</p>
-      <input type="password" id="pw-input" placeholder="Password"
-        onkeydown="if(event.key==='Enter') checkPassword()" />
-      <button class="btn-add" onclick="checkPassword()">Unlock</button>
-      <div class="pw-error" id="pw-error"></div>
+    <!-- Login screen -->
+    <div class="pw-screen" id="_ps">
+      <p>Admin access only</p>
+      <input type="text" id="_ui" placeholder="Username" style="margin-bottom:0.5rem;"
+        onkeydown="if(event.key==='Enter')document.getElementById('_pi').focus()" />
+      <input type="password" id="_pi" placeholder="Password"
+        onkeydown="if(event.key==='Enter')_cp()" />
+      <button class="btn-add" style="margin-top:0.5rem;" onclick="_cp()">Unlock</button>
+      <div class="pw-error" id="_pe"></div>
     </div>
 
     <!-- Dashboard screen -->
-    <div class="dash-screen" id="dash-screen">
+    <div class="dash-screen" id="_ds">
+
+      <!-- Analytics Stats -->
+      <div class="dash-section-title">Analytics</div>
       <div class="dash-stats">
-        <div class="stat-pill">Total: <span id="stat-total">0</span></div>
-        <div class="stat-pill">Friends: <span id="stat-friends">0</span></div>
-        <div class="stat-pill">Seniors: <span id="stat-seniors">0</span></div>
+        <div class="stat-pill">👁 Impressions: <span id="stat-imp">—</span></div>
+        <div class="stat-pill">🎴 Cards generated: <span id="stat-cards">—</span></div>
+        <div class="stat-pill">📋 Total entries: <span id="stat-total">0</span></div>
+        <div class="stat-pill">👥 Friends: <span id="stat-friends">0</span></div>
+        <div class="stat-pill">🎓 Seniors: <span id="stat-seniors">0</span></div>
+        <div class="stat-pill">🔢 Total visits: <span id="stat-visits">0</span></div>
+        <div class="stat-pill">🎯 Unique rolls: <span id="stat-unique">0</span></div>
       </div>
 
+      <!-- Add Entry -->
       <div class="dash-section-title">Add New Entry</div>
       <div class="dash-add-row">
         <input type="text" id="new-roll" placeholder="Roll number" maxlength="20" />
         <input type="text" id="new-name" placeholder="Name" maxlength="40"
-          onkeydown="if(event.key==='Enter') addEntry()" />
+          onkeydown="if(event.key==='Enter')addEntry()" />
         <select id="new-type">
           <option value="friend">Friend</option>
           <option value="senior">Senior</option>
@@ -1254,10 +1313,25 @@
       </div>
       <div class="dash-add-feedback" id="add-feedback"></div>
 
+      <!-- Entry list -->
       <div class="dash-section-title">All Entries</div>
-      <input class="dash-search" id="dash-search" placeholder="Search by roll or name…"
-        oninput="renderList()" />
+      <input class="dash-search" id="dash-search" placeholder="Search by roll or name…" oninput="_rl()" />
       <div class="entry-list" id="entry-list"></div>
+
+      <!-- Visit Log -->
+      <div class="dash-section-title" style="margin-top:1.8rem;">Visit Log</div>
+      <div class="entry-list" id="visit-list"></div>
+
+      <!-- Change Credentials -->
+      <div class="dash-section-title" style="margin-top:1.8rem;">Change Login Credentials</div>
+      <div class="dash-add-row">
+        <input type="text" id="new-username" placeholder="New username" maxlength="30" />
+        <input type="password" id="new-password" placeholder="New password" maxlength="50"
+          onkeydown="if(event.key==='Enter')_scp()" />
+        <button class="btn-add" onclick="_scp()">Save ✦</button>
+      </div>
+      <div class="dash-add-feedback" id="cred-feedback"></div>
+
     </div>
   </div>
 </div>
