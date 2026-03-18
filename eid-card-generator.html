@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eid Card Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #f0d080;
+    --gold-dim: #7a5f28;
+    --bg: #080c12;
+    --surface: #0d1320;
+    --surface2: #111a2c;
+    --text: #e8dfc8;
+    --text-dim: #8a7d62;
+    --glow: rgba(201,168,76,0.18);
+    --crescent: #f0d080;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2rem 1rem 4rem;
+    overflow-x: hidden;
+  }
+
+  /* Starfield */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 50% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 35%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 85%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 50%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 90% 10%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 40%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 55%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 50%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 95% 70%, rgba(255,255,255,0.5) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .page-header .arabic {
+    font-family: 'Amiri', serif;
+    font-size: 2rem;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(201,168,76,0.5);
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+
+  .page-header h1 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.3rem, 4vw, 2rem);
+    font-weight: 400;
+    color: var(--gold-light);
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 40px rgba(201,168,76,0.3);
+  }
+
+  .page-header p {
+    color: var(--text-dim);
+    font-style: italic;
+    font-size: 1.05rem;
+    margin-top: 0.5rem;
+  }
+
+  /* Input section */
+  .input-section {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  .input-wrap input {
+    background: var(--surface2);
+    border: 1px solid var(--gold-dim);
+    border-radius: 4px;
+    color: var(--gold-light);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.15em;
+    padding: 0.7rem 1.4rem;
+    outline: none;
+    width: 220px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .input-wrap input::placeholder { color: var(--text-dim); letter-spacing: 0.1em; }
+
+  .input-wrap input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 20px var(--glow);
+  }
+
+  button.generate-btn {
+    background: linear-gradient(135deg, #7a5f28 0%, #c9a84c 50%, #7a5f28 100%);
+    background-size: 200% 200%;
+    border: none;
+    border-radius: 4px;
+    color: #080c12;
+    cursor: pointer;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.75rem 1.8rem;
+    transition: background-position 0.4s, transform 0.2s, box-shadow 0.3s;
+  }
+
+  button.generate-btn:hover {
+    background-position: right center;
+    box-shadow: 0 0 25px rgba(201,168,76,0.4);
+    transform: translateY(-1px);
+  }
+
+  .error-msg {
+    color: #e07070;
+    font-style: italic;
+    font-size: 0.95rem;
+    text-align: center;
+    min-height: 1.4rem;
+    position: relative;
+    z-index: 1;
+    margin-top: -1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Card wrapper */
+  .card-wrapper {
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    transform: translateY(30px) scale(0.97);
+    transition: opacity 0.6s cubic-bezier(.22,1,.36,1), transform 0.6s cubic-bezier(.22,1,.36,1);
+    pointer-events: none;
+  }
+
+  .card-wrapper.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: all;
+  }
+
+  /* THE CARD */
+  #eid-card {
+    width: min(520px, 92vw);
+    aspect-ratio: 520 / 680;
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--gold-dim);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 2rem;
+    box-shadow:
+      0 0 0 1px rgba(201,168,76,0.08),
+      0 8px 40px rgba(0,0,0,0.7),
+      0 0 80px rgba(201,168,76,0.07) inset;
+  }
+
+  /* Card background gradient - handled by #card-bg-overlay div */
+
+  /* Corner ornaments */
+  .corner {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    opacity: 0.6;
+  }
+  .corner svg { width: 100%; height: 100%; }
+  .corner-tl { top: 12px; left: 12px; }
+  .corner-tr { top: 12px; right: 12px; transform: scaleX(-1); }
+  .corner-bl { bottom: 12px; left: 12px; transform: scaleY(-1); }
+  .corner-br { bottom: 12px; right: 12px; transform: scale(-1); }
+
+  /* Crescent moon */
+  .crescent-wrap {
+    position: relative;
+    margin-bottom: 1.2rem;
+    filter: drop-shadow(0 0 18px rgba(240,208,128,0.5));
+  }
+
+  .crescent-wrap svg {
+    width: 80px;
+    height: 80px;
+  }
+
+  /* Stars near crescent */
+  .star-small {
+    position: absolute;
+    background: var(--gold-light);
+    border-radius: 50%;
+    animation: twinkle 2s ease-in-out infinite alternate;
+  }
+  .star-small:nth-child(1) { width:4px;height:4px; top:5px;right:12px; animation-delay:0s; }
+  .star-small:nth-child(2) { width:3px;height:3px; top:20px;right:2px; animation-delay:0.5s; }
+  .star-small:nth-child(3) { width:3px;height:3px; top:0px;left:18px; animation-delay:1s; }
+
+  @keyframes twinkle {
+    from { opacity: 0.4; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1.2); }
+  }
+
+  /* Arabic greeting */
+  .arabic-greeting {
+    font-family: 'Amiri', serif;
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(201,168,76,0.5), 0 0 60px rgba(201,168,76,0.2);
+    text-align: center;
+    margin-bottom: 0.3rem;
+    line-height: 1.4;
+  }
+
+  /* Divider */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 0.9rem 0;
+    width: 80%;
+  }
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  }
+  .divider-diamond {
+    width: 6px; height: 6px;
+    background: var(--gold);
+    transform: rotate(45deg);
+  }
+
+  /* Name */
+  .card-name {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.5rem, 5vw, 2.2rem);
+    font-weight: 700;
+    color: var(--gold-light);
+    text-shadow: 0 0 40px rgba(240,208,128,0.4);
+    text-align: center;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.2rem;
+  }
+
+  .card-roll {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    margin-bottom: 0.1rem;
+  }
+
+  /* Eid message */
+  .card-message {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+    color: var(--text);
+    text-align: center;
+    font-style: italic;
+    line-height: 1.7;
+    max-width: 340px;
+    margin-top: 0.5rem;
+    opacity: 0.85;
+  }
+
+  /* Bottom geo pattern */
+  .geo-pattern {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 55px;
+    overflow: hidden;
+    opacity: 0.25;
+  }
+
+  /* Top arch motif */
+  .arch-motif {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, transparent 0%, var(--gold-dim) 20%, var(--gold) 50%, var(--gold-dim) 80%, transparent 100%);
+  }
+
+  /* Download btn */
+  .download-wrap {
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+
+  button.dl-btn {
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    border-radius: 4px;
+    color: var(--gold);
+    cursor: pointer;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    font-style: italic;
+    letter-spacing: 0.1em;
+    padding: 0.55rem 1.5rem;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+  }
+
+  button.dl-btn:hover {
+    background: rgba(201,168,76,0.08);
+    border-color: var(--gold);
+    box-shadow: 0 0 15px var(--glow);
+  }
+
+  /* Lantern decoration */
+  .lantern-left, .lantern-right {
+    position: absolute;
+    top: 80px;
+    opacity: 0.18;
+    width: 36px;
+  }
+  .lantern-left { left: 18px; }
+  .lantern-right { right: 18px; transform: scaleX(-1); }
+
+  /* Floating mosque silhouette */
+  .mosque-silhouette {
+    position: absolute;
+    bottom: 55px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0.12;
+    width: 260px;
+  }
+  /* ── Admin button ── */
+  .admin-btn {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 100;
+    background: var(--surface2);
+    border: 1px solid var(--gold-dim);
+    border-radius: 50%;
+    width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--gold-dim);
+    transition: border-color 0.3s, color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  .admin-btn:hover { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 16px var(--glow); }
+
+  /* ── Modal overlay ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--gold-dim);
+    border-radius: 12px;
+    width: min(560px, 94vw);
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 2rem;
+    box-shadow: 0 0 60px rgba(0,0,0,0.8), 0 0 30px rgba(201,168,76,0.06) inset;
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.3s cubic-bezier(.22,1,.36,1);
+  }
+  .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+
+  .modal-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.1rem;
+    color: var(--gold-light);
+    letter-spacing: 0.1em;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-close {
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; font-size: 1.3rem; line-height: 1;
+    transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--gold); }
+
+  /* Password screen */
+  .pw-screen { text-align: center; }
+  .pw-screen p { font-style: italic; color: var(--text-dim); margin-bottom: 1rem; }
+  .pw-screen input {
+    background: var(--surface2); border: 1px solid var(--gold-dim);
+    border-radius: 4px; color: var(--gold-light);
+    font-family: 'Cormorant Garamond', serif; font-size: 1.1rem;
+    padding: 0.6rem 1.2rem; outline: none; width: 100%; margin-bottom: 0.8rem;
+    transition: border-color 0.3s, box-shadow 0.3s; letter-spacing: 0.15em;
+  }
+  .pw-screen input:focus { border-color: var(--gold); box-shadow: 0 0 16px var(--glow); }
+  .pw-error { color: #e07070; font-size: 0.9rem; font-style: italic; min-height: 1.2rem; margin-top: 0.3rem; }
+
+  /* Dashboard screen */
+  .dash-screen { display: none; }
+  .dash-screen.active { display: block; }
+
+  .dash-section-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.75rem; letter-spacing: 0.12em;
+    color: var(--gold-dim); margin-bottom: 0.8rem; margin-top: 1.2rem;
+    text-transform: uppercase;
+  }
+
+  .dash-add-row {
+    display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.2rem;
+  }
+  .dash-add-row input {
+    background: var(--surface2); border: 1px solid var(--gold-dim);
+    border-radius: 4px; color: var(--gold-light);
+    font-family: 'Cormorant Garamond', serif; font-size: 1rem;
+    padding: 0.55rem 1rem; outline: none; flex: 1; min-width: 100px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .dash-add-row input:focus { border-color: var(--gold); box-shadow: 0 0 12px var(--glow); }
+
+  .dash-add-row select {
+    background: var(--surface2); border: 1px solid var(--gold-dim);
+    border-radius: 4px; color: var(--gold-light);
+    font-family: 'Cormorant Garamond', serif; font-size: 1rem;
+    padding: 0.55rem 0.8rem; outline: none;
+    transition: border-color 0.3s;
+  }
+  .dash-add-row select:focus { border-color: var(--gold); }
+
+  .btn-add {
+    background: linear-gradient(135deg, #7a5f28 0%, #c9a84c 50%, #7a5f28 100%);
+    background-size: 200% 200%;
+    border: none; border-radius: 4px; color: #080c12;
+    cursor: pointer; font-family: 'Cinzel Decorative', serif;
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+    padding: 0.55rem 1.2rem; white-space: nowrap;
+    transition: background-position 0.4s, box-shadow 0.3s;
+  }
+  .btn-add:hover { background-position: right center; box-shadow: 0 0 16px rgba(201,168,76,0.3); }
+
+  .dash-add-feedback {
+    font-size: 0.9rem; font-style: italic; min-height: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+  .dash-add-feedback.ok { color: #70e090; }
+  .dash-add-feedback.err { color: #e07070; }
+
+  /* Entry list */
+  .entry-list {
+    max-height: 300px; overflow-y: auto;
+    border: 1px solid rgba(201,168,76,0.12);
+    border-radius: 6px;
+  }
+  .entry-list::-webkit-scrollbar { width: 4px; }
+  .entry-list::-webkit-scrollbar-track { background: transparent; }
+  .entry-list::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+
+  .entry-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.55rem 1rem;
+    border-bottom: 1px solid rgba(201,168,76,0.07);
+    transition: background 0.2s;
+  }
+  .entry-row:last-child { border-bottom: none; }
+  .entry-row:hover { background: rgba(201,168,76,0.04); }
+  .entry-row-info { display: flex; gap: 1rem; align-items: center; }
+  .entry-roll { font-size: 0.85rem; color: var(--text-dim); letter-spacing: 0.1em; font-style: italic; }
+  .entry-name { font-size: 1rem; color: var(--text); }
+  .entry-tag {
+    font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 20px;
+    font-family: 'Cinzel Decorative', serif; letter-spacing: 0.05em;
+  }
+  .entry-tag.friend { background: rgba(201,168,76,0.15); color: var(--gold); }
+  .entry-tag.senior { background: rgba(80,140,220,0.15); color: #80c0f8; }
+  .entry-tag.builtin { background: rgba(255,255,255,0.05); color: var(--text-dim); }
+
+  .btn-delete {
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; font-size: 1rem; padding: 0.2rem 0.4rem;
+    border-radius: 4px; transition: color 0.2s, background 0.2s;
+  }
+  .btn-delete:hover { color: #e07070; background: rgba(220,80,80,0.1); }
+  .btn-delete[disabled] { opacity: 0.2; cursor: not-allowed; }
+
+  .dash-search {
+    background: var(--surface2); border: 1px solid var(--gold-dim);
+    border-radius: 4px; color: var(--gold-light);
+    font-family: 'Cormorant Garamond', serif; font-size: 1rem;
+    padding: 0.55rem 1rem; outline: none; width: 100%; margin-bottom: 0.8rem;
+    transition: border-color 0.3s;
+  }
+  .dash-search:focus { border-color: var(--gold); }
+  .dash-search::placeholder { color: var(--text-dim); }
+
+  .dash-stats {
+    display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;
+  }
+  .stat-pill {
+    background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 20px; padding: 0.3rem 0.9rem;
+    font-size: 0.85rem; color: var(--text-dim); font-style: italic;
+  }
+  .stat-pill span { color: var(--gold); font-style: normal; }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <span class="arabic">عيد مبارك</span>
+  <p>Just enter your roll and see the magic 🌙</p>
+</header>
+
+<div class="input-section">
+  <div class="input-wrap">
+    <input type="text" id="roll-input" placeholder="e.g. 2421035" maxlength="20"
+      onkeydown="if(event.key==='Enter') generateCard()" />
+  </div>
+  <button class="generate-btn" onclick="generateCard()">Get your gift 🎁</button>
+</div>
+
+<div class="error-msg" id="error-msg"></div>
+
+<div class="card-wrapper" id="card-wrapper">
+  <div id="eid-card">
+
+    <!-- Background overlay for theming -->
+    <div id="card-bg-overlay" style="position:absolute;inset:0;pointer-events:none;z-index:0;
+      background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(201,168,76,0.12) 0%, transparent 70%),
+                  radial-gradient(ellipse 60% 40% at 50% 100%, rgba(20,60,100,0.3) 0%, transparent 70%);"></div>
+
+    <!-- Top gold bar -->
+    <div class="arch-motif"></div>
+
+    <!-- Corner ornaments -->
+    <div class="corner corner-tl">
+      <svg viewBox="0 0 60 60" fill="none">
+        <path d="M2 2 L25 2 Q30 2 30 7 L30 10" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+        <path d="M2 2 L2 25 Q2 30 7 30 L10 30" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+        <circle cx="2" cy="2" r="2" fill="#c9a84c"/>
+        <circle cx="30" cy="10" r="1.5" fill="#c9a84c" opacity="0.7"/>
+        <circle cx="10" cy="30" r="1.5" fill="#c9a84c" opacity="0.7"/>
+        <path d="M8 8 L18 8 L18 18 L8 18 Z" stroke="#c9a84c" stroke-width="0.8" fill="none" opacity="0.5"/>
+        <circle cx="13" cy="13" r="2" stroke="#c9a84c" stroke-width="0.8" fill="none" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="corner corner-tr">
+      <svg viewBox="0 0 60 60" fill="none">
+        <path d="M2 2 L25 2 Q30 2 30 7 L30 10" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+        <path d="M2 2 L2 25 Q2 30 7 30 L10 30" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+        <circle cx="2" cy="2" r="2" fill="#c9a84c"/>
+        <circle cx="30" cy="10" r="1.5" fill="#c9a84c" opacity="0.7"/>
+        <circle cx="10" cy="30" r="1.5" fill="#c9a84c" opacity="0.7"/>
+        <path d="M8 8 L18 8 L18 18 L8 18 Z" stroke="#c9a84c" stroke-width="0.8" fill="none" opacity="0.5"/>
+        <circle cx="13" cy="13" r="2" stroke="#c9a84c" stroke-width="0.8" fill="none" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="corner corner-bl">
+      <svg viewBox="0 0 60 60" fill="none">
+        <path d="M2 2 L25 2 Q30 2 30 7 L30 10" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+        <path d="M2 2 L2 25 Q2 30 7 30 L10 30" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+        <circle cx="2" cy="2" r="2" fill="#c9a84c"/>
+        <circle cx="30" cy="10" r="1.5" fill="#c9a84c" opacity="0.7"/>
+        <circle cx="10" cy="30" r="1.5" fill="#c9a84c" opacity="0.7"/>
+        <path d="M8 8 L18 8 L18 18 L8 18 Z" stroke="#c9a84c" stroke-width="0.8" fill="none" opacity="0.5"/>
+        <circle cx="13" cy="13" r="2" stroke="#c9a84c" stroke-width="0.8" fill="none" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="corner corner-br">
+      <svg viewBox="0 0 60 60" fill="none">
+        <path d="M2 2 L25 2 Q30 2 30 7 L30 10" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+        <path d="M2 2 L2 25 Q2 30 7 30 L10 30" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+        <circle cx="2" cy="2" r="2" fill="#c9a84c"/>
+        <circle cx="30" cy="10" r="1.5" fill="#c9a84c" opacity="0.7"/>
+        <circle cx="10" cy="30" r="1.5" fill="#c9a84c" opacity="0.7"/>
+        <path d="M8 8 L18 8 L18 18 L8 18 Z" stroke="#c9a84c" stroke-width="0.8" fill="none" opacity="0.5"/>
+        <circle cx="13" cy="13" r="2" stroke="#c9a84c" stroke-width="0.8" fill="none" opacity="0.5"/>
+      </svg>
+    </div>
+
+    <!-- Lanterns -->
+    <svg class="lantern-left" viewBox="0 0 36 90" fill="none">
+      <line x1="18" y1="0" x2="18" y2="8" stroke="#c9a84c" stroke-width="1.5"/>
+      <rect x="10" y="8" width="16" height="5" rx="2" fill="#c9a84c" opacity="0.8"/>
+      <rect x="8" y="13" width="20" height="45" rx="4" fill="none" stroke="#c9a84c" stroke-width="1.5"/>
+      <line x1="18" y1="13" x2="18" y2="58" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
+      <line x1="8" y1="30" x2="28" y2="30" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
+      <line x1="8" y1="42" x2="28" y2="42" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
+      <path d="M8 58 Q18 70 28 58" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+      <line x1="18" y1="70" x2="18" y2="80" stroke="#c9a84c" stroke-width="1.5"/>
+      <circle cx="18" cy="82" r="3" fill="#c9a84c" opacity="0.8"/>
+    </svg>
+    <svg class="lantern-right" viewBox="0 0 36 90" fill="none">
+      <line x1="18" y1="0" x2="18" y2="8" stroke="#c9a84c" stroke-width="1.5"/>
+      <rect x="10" y="8" width="16" height="5" rx="2" fill="#c9a84c" opacity="0.8"/>
+      <rect x="8" y="13" width="20" height="45" rx="4" fill="none" stroke="#c9a84c" stroke-width="1.5"/>
+      <line x1="18" y1="13" x2="18" y2="58" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
+      <line x1="8" y1="30" x2="28" y2="30" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
+      <line x1="8" y1="42" x2="28" y2="42" stroke="#c9a84c" stroke-width="0.8" opacity="0.5"/>
+      <path d="M8 58 Q18 70 28 58" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+      <line x1="18" y1="70" x2="18" y2="80" stroke="#c9a84c" stroke-width="1.5"/>
+      <circle cx="18" cy="82" r="3" fill="#c9a84c" opacity="0.8"/>
+    </svg>
+
+    <!-- Crescent moon -->
+    <div class="crescent-wrap">
+      <div class="star-small"></div>
+      <div class="star-small"></div>
+      <div class="star-small"></div>
+      <svg viewBox="0 0 80 80" fill="none">
+        <!-- Glow -->
+        <circle class="crescent-glow-circle" cx="40" cy="40" r="32" fill="rgba(240,208,128,0.07)"/>
+        <!-- Crescent moon: big circle minus offset circle -->
+        <path class="crescent-path" d="
+          M 40 12
+          A 28 28 0 1 1 40 68
+          A 20 20 0 1 0 40 12
+          Z" fill="#f0d080"/>
+      </svg>
+    </div>
+
+    <!-- Arabic greeting -->
+    <div class="arabic-greeting" id="arabic-greeting-el">عيد مبارك</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:0.9rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:0.3rem;">EID MUBARAK</div>
+
+    <!-- Divider -->
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-diamond"></div>
+      <div class="divider-line"></div>
+    </div>
+
+    <!-- Name -->
+    <div class="card-name" id="card-name">—</div>
+
+    <!-- Divider -->
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-diamond"></div>
+      <div class="divider-line"></div>
+    </div>
+
+    <!-- Message -->
+    <div class="card-message">
+      <span id="card-msg-line1">May this blessed Eid bring you joy, peace,</span><br>
+      <span id="card-msg-line2">and countless moments of happiness.</span><br>
+      <span id="card-msg-line3"></span>
+      <br>
+      <span id="card-dua" style="font-family:'Amiri',serif;color:var(--gold);font-style:normal;font-size:1.15em;">تَقَبَّلَ اللهُ مِنَّا وَمِنْكُمْ</span>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider" style="margin-top:1.1rem;">
+      <div class="divider-line"></div>
+      <div class="divider-diamond"></div>
+      <div class="divider-line"></div>
+    </div>
+
+    <div style="text-align:center;margin-top:0.5rem;">
+      <span id="signature-label" style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:0.9rem;color:var(--text-dim);letter-spacing:0.08em;">Your friend</span><br>
+      <span id="signature-name" style="font-family:'Cinzel Decorative',serif;font-size:1.05rem;color:var(--gold);letter-spacing:0.15em;text-shadow:0 0 20px rgba(201,168,76,0.4);">Hayat</span>
+    </div>
+
+    <!-- Mosque silhouette -->
+    <svg class="mosque-silhouette" viewBox="0 0 260 80" fill="#c9a84c">
+      <!-- Main dome -->
+      <ellipse cx="130" cy="35" rx="28" ry="28"/>
+      <rect x="102" y="35" width="56" height="30"/>
+      <!-- Left dome -->
+      <ellipse cx="80" cy="45" rx="18" ry="18"/>
+      <rect x="62" y="45" width="36" height="20"/>
+      <!-- Right dome -->
+      <ellipse cx="180" cy="45" rx="18" ry="18"/>
+      <rect x="162" y="45" width="36" height="20"/>
+      <!-- Minarets -->
+      <rect x="40" y="20" width="8" height="45"/>
+      <ellipse cx="44" cy="20" rx="5" ry="8"/>
+      <rect x="212" y="20" width="8" height="45"/>
+      <ellipse cx="216" cy="20" rx="5" ry="8"/>
+      <!-- Base -->
+      <rect x="20" y="65" width="220" height="15"/>
+      <!-- Arched windows on main building -->
+      <path d="M114 55 Q130 45 146 55 L146 65 L114 65 Z" fill="#080c12" opacity="0.4"/>
+      <!-- Crescent tops -->
+      <text x="42" y="14" font-size="8" text-anchor="middle" fill="#f0d080">☽</text>
+      <text x="214" y="14" font-size="8" text-anchor="middle" fill="#f0d080">☽</text>
+    </svg>
+
+    <!-- Bottom geo pattern -->
+    <div class="geo-pattern">
+      <svg viewBox="0 0 520 55" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+        <defs>
+          <pattern id="geo" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+            <rect width="40" height="40" fill="none"/>
+            <polygon class="geo-hex" points="20,2 38,11 38,29 20,38 2,29 2,11" stroke="#c9a84c" stroke-width="0.8" fill="none"/>
+            <polygon class="geo-hex-inner" points="20,8 32,14 32,26 20,32 8,26 8,14" stroke="#c9a84c" stroke-width="0.5" fill="none"/>
+            <circle class="geo-circle" cx="20" cy="20" r="3" stroke="#c9a84c" stroke-width="0.5" fill="none"/>
+          </pattern>
+        </defs>
+        <rect width="520" height="55" fill="url(#geo)"/>
+      </svg>
+    </div>
+
+  </div><!-- end #eid-card -->
+
+  <div class="download-wrap">
+    <button class="dl-btn" onclick="downloadCard()">⬇ Download Card</button>
+  </div>
+</div><!-- end card-wrapper -->
+
+<script>
+  // ── Roll → Name database ──────────────────────────────────────
+  const rollData = {
+    "2421001": "Mukit",   "2421002": "Sadat",    "2421003": "Junayed",
+    "2421004": "Rifat",   "2421005": "Tihan",    "2421006": "Ashik",
+    "2421007": "Zobaer",  "2421008": "Aion",     "2421009": "Mamun",
+    "2421011": "Rakib",   "2421012": "Arafat",   "2421013": "Rudro",
+    "2421014": "Nishita", "2421015": "Soumik",   "2421016": "Prantik",
+    "2421017": "Afra",    "2421018": "Rahi",     "2421019": "Desh",
+    "2421020": "Muntaha", "2421021": "Tanvir",   "2421022": "Shadman",
+    "2421023": "Habib",   "2421024": "Alif",     "2421025": "Promy",
+    "2421026": "Samir",   "2421027": "Jafrul",   "2421028": "Mohaiemin",
+    "2421029": "Sanaul",  "2421030": "Minar",    "2421031": "Kamrul",
+    "2421032": "Shwapno", "2421033": "Rudra",    "2421034": "Mursalin",
+    "2421035": "Arafat",  "2421036": "Zihan",    "2421037": "Shams",
+    "2421038": "Ratul",   "2421039": "Shibly",   "2421041": "Mustaim",
+    "2421042": "Samiha",  "2421043": "Sakib",    "2421044": "Rasel",
+    "2421045": "Shihab",  "2421046": "Abdullah", "2421047": "Sadia",
+    "2421048": "Sani",    "2421049": "Tinni",    "2421050": "Tanha",
+    "2421051": "Atika",   "2421052": "Momta",    "2421053": "Anik",
+    "2421054": "Fahim",   "2421056": "Tazim",    "2421057": "Ittila",
+    "2421058": "Fahim",   "2421059": "Habib",    "2421060": "Sojib",
+    // ── Seniors ──────────────────────────────────────────────────
+    "2321035": "Munim bhai",
+    "2221035": "Munem bhai",
+    "2121035": "Rohon bhai",
+    "2021035": "Shuvodip bhai",
+    "1921035": "Tarikul bhai",
+    "2321001": "Ramim bhai",
+    "2321003": "Rokon bhai",
+    "2321004": "Samir bhai",
+    "2321024": "Taki bhai",
+    "2321034": "Raffin bhai",
+    "2021049": "Koushik bhai",
+    "2321049": "Tamzeed bhai",
+    "2321016": "Shreya apu",
+    "2121051": "Propa apu",
+    "2121052": "Sazal bhai",
+    "2321006": "Ajmain bhai",
+    "2301100": "Rezwan bhai",
+  };
+
+  // ── 16 card themes ────────────────────────────────────────────
+  // Each theme: { bg, topGlow, bottomGlow, accentColor, accentLight, accentDim, message, arabicDua, tint }
+  const themes = [
+    {
+      bg: '#0d1320', topGlow: 'rgba(201,168,76,0.13)', bottomGlow: 'rgba(20,60,100,0.3)',
+      accent: '#c9a84c', accentLight: '#f0d080', accentDim: '#7a5f28',
+      message: "May this Eid fill your home with light,\nyour heart with warmth,\nand your days with blessings.",
+      dua: "تَقَبَّلَ اللهُ مِنَّا وَمِنْكُمْ"
+    },
+    {
+      bg: '#0a1510', topGlow: 'rgba(80,180,100,0.12)', bottomGlow: 'rgba(10,80,30,0.3)',
+      accent: '#5ab870', accentLight: '#90e8a0', accentDim: '#2d6040',
+      message: "Eid Mubarak! May Allah shower\nyou with His infinite mercy\nand boundless grace.",
+      dua: "عِيدُكُمْ مُبَارَكٌ"
+    },
+    {
+      bg: '#10080d', topGlow: 'rgba(200,80,160,0.12)', bottomGlow: 'rgba(100,20,60,0.3)',
+      accent: '#c860a0', accentLight: '#f090c8', accentDim: '#703060',
+      message: "Wishing you a Eid adorned\nwith smiles, laughter,\nand sweet memories.",
+      dua: "كُلَّ عَامٍ وَأَنْتَ بِخَيْرٍ"
+    },
+    {
+      bg: '#080d18', topGlow: 'rgba(80,140,220,0.13)', bottomGlow: 'rgba(20,40,120,0.3)',
+      accent: '#5090d8', accentLight: '#80c0f8', accentDim: '#284880',
+      message: "May Allah accept your prayers,\nforgive your sins,\nand ease all your difficulties.",
+      dua: "تَقَبَّلَ اللهُ مِنَّا وَمِنْكُمْ"
+    },
+    {
+      bg: '#110a06', topGlow: 'rgba(220,120,50,0.13)', bottomGlow: 'rgba(100,40,10,0.3)',
+      accent: '#d8783a', accentLight: '#f0a870', accentDim: '#804020',
+      message: "On this blessed Eid, may your\nduaas be answered and your\nsteps guided to goodness.",
+      dua: "عِيدُكُمْ مُبَارَكٌ"
+    },
+    {
+      bg: '#0a0a18', topGlow: 'rgba(140,100,220,0.13)', bottomGlow: 'rgba(60,20,120,0.3)',
+      accent: '#9070d8', accentLight: '#c0a0f8', accentDim: '#503090',
+      message: "May the spirit of Eid bring\njoy to your heart and peace\nto your soul, always.",
+      dua: "كُلَّ عَامٍ وَأَنْتَ بِخَيْرٍ"
+    },
+    {
+      bg: '#0d1318', topGlow: 'rgba(60,180,200,0.12)', bottomGlow: 'rgba(10,70,90,0.3)',
+      accent: '#40b8c8', accentLight: '#80e0f0', accentDim: '#206878',
+      message: "This Eid, may you be surrounded\nby loved ones and blessed\nwith abundance and serenity.",
+      dua: "تَقَبَّلَ اللهُ مِنَّا وَمِنْكُمْ"
+    },
+    {
+      bg: '#100d08', topGlow: 'rgba(200,180,60,0.13)', bottomGlow: 'rgba(90,70,10,0.3)',
+      accent: '#c8b040', accentLight: '#f0d860', accentDim: '#786020',
+      message: "Eid Mubarak! May every prayer\nyou whisper find its way\nto the heavens above.",
+      dua: "عِيدُكُمْ مُبَارَكٌ"
+    },
+    {
+      bg: '#080f10', topGlow: 'rgba(40,160,160,0.12)', bottomGlow: 'rgba(10,60,70,0.3)',
+      accent: '#30a8a8', accentLight: '#70d8d8', accentDim: '#185858',
+      message: "May this Eid be a new chapter\nof happiness, health,\nand divine blessings for you.",
+      dua: "كُلَّ عَامٍ وَأَنْتَ بِخَيْرٍ"
+    },
+    {
+      bg: '#100808', topGlow: 'rgba(200,60,60,0.12)', bottomGlow: 'rgba(100,10,10,0.3)',
+      accent: '#c84040', accentLight: '#f08080', accentDim: '#702020',
+      message: "Eid Mubarak! Sending you\nwarmth, love and sincerest\nblessings on this holy day.",
+      dua: "تَقَبَّلَ اللهُ مِنَّا وَمِنْكُمْ"
+    },
+    {
+      bg: '#0a0f0a', topGlow: 'rgba(100,200,80,0.12)', bottomGlow: 'rgba(20,80,10,0.3)',
+      accent: '#70c850', accentLight: '#a0f070', accentDim: '#307020',
+      message: "May the crescent moon above\nguide your path to joy,\npeace and prosperity always.",
+      dua: "عِيدُكُمْ مُبَارَكٌ"
+    },
+    {
+      bg: '#0d0d18', topGlow: 'rgba(100,80,220,0.13)', bottomGlow: 'rgba(40,20,100,0.3)',
+      accent: '#7860d8', accentLight: '#a890f8', accentDim: '#402880',
+      message: "On this joyous Eid, may\nAllah's mercy rain upon you\nlike stars fill the night sky.",
+      dua: "كُلَّ عَامٍ وَأَنْتَ بِخَيْرٍ"
+    },
+    {
+      bg: '#100c08', topGlow: 'rgba(220,160,40,0.13)', bottomGlow: 'rgba(100,60,10,0.3)',
+      accent: '#d8a030', accentLight: '#f8c860', accentDim: '#806010',
+      message: "Eid Mubarak! May this blessed\nday mark the beginning of\nyour happiest days yet.",
+      dua: "تَقَبَّلَ اللهُ مِنَّا وَمِنْكُمْ"
+    },
+    {
+      bg: '#08100f', topGlow: 'rgba(40,200,160,0.12)', bottomGlow: 'rgba(10,80,60,0.3)',
+      accent: '#30c898', accentLight: '#70f0c0', accentDim: '#187858',
+      message: "May Allah bless every corner\nof your life with love,\nlaughter and endless peace.",
+      dua: "عِيدُكُمْ مُبَارَكٌ"
+    },
+    {
+      bg: '#100808', topGlow: 'rgba(220,100,40,0.12)', bottomGlow: 'rgba(100,30,10,0.3)',
+      accent: '#d86830', accentLight: '#f89860', accentDim: '#803010',
+      message: "This Eid, may your heart be\nlight as the crescent moon\nand your smile never fade.",
+      dua: "كُلَّ عَامٍ وَأَنْتَ بِخَيْرٍ"
+    },
+    {
+      bg: '#080a10', topGlow: 'rgba(60,120,220,0.13)', bottomGlow: 'rgba(10,30,110,0.3)',
+      accent: '#3870d8', accentLight: '#70a8f8', accentDim: '#183880',
+      message: "Eid Mubarak! May this festival\nbring you closer to Allah\nand to all you hold dear.",
+      dua: "تَقَبَّلَ اللهُ مِنَّا وَمِنْكُمْ"
+    },
+  ];
+
+  // Deterministic theme per roll (always same theme for same roll)
+  function getThemeForRoll(roll) {
+    let hash = 0;
+    for (let i = 0; i < roll.length; i++) {
+      hash = (hash * 31 + roll.charCodeAt(i)) % themes.length;
+    }
+    return themes[hash];
+  }
+
+  function applyTheme(theme) {
+    const card = document.getElementById('eid-card');
+
+    // Background
+    card.style.background = theme.bg;
+
+    // CSS gradient overlay via pseudo — we use a real element instead
+    document.getElementById('card-bg-overlay').style.background =
+      `radial-gradient(ellipse 70% 50% at 50% 0%, ${theme.topGlow} 0%, transparent 70%),
+       radial-gradient(ellipse 60% 40% at 50% 100%, ${theme.bottomGlow} 0%, transparent 70%)`;
+
+    // Border
+    card.style.borderColor = theme.accentDim;
+
+    // Accent colors via CSS vars on card
+    card.style.setProperty('--t-accent', theme.accent);
+    card.style.setProperty('--t-accentLight', theme.accentLight);
+    card.style.setProperty('--t-accentDim', theme.accentDim);
+
+    // Crescent fill
+    document.querySelectorAll('.crescent-path').forEach(el => el.style.fill = theme.accentLight);
+    document.querySelectorAll('.crescent-star-poly').forEach(el => el.style.fill = theme.accentLight);
+    document.querySelectorAll('.crescent-glow-circle').forEach(el =>
+      el.style.fill = theme.accentLight.replace(')', ',0.07)').replace('rgb', 'rgba'));
+
+    // Arabic greeting
+    document.getElementById('arabic-greeting-el').style.color = theme.accent;
+    document.getElementById('arabic-greeting-el').style.textShadow = `0 0 30px ${theme.accent}88, 0 0 60px ${theme.accent}33`;
+
+    // Crescent glow filter
+    document.querySelector('.crescent-wrap').style.filter = `drop-shadow(0 0 18px ${theme.accentLight}88)`;
+
+    // Name color
+    document.getElementById('card-name').style.color = theme.accentLight;
+    document.getElementById('card-name').style.textShadow = `0 0 40px ${theme.accentLight}66`;
+
+    // Divider diamonds
+    document.querySelectorAll('.divider-diamond').forEach(el => el.style.background = theme.accent);
+
+    // Message dua
+    document.getElementById('card-dua').style.color = theme.accent;
+    document.getElementById('card-dua').textContent = theme.dua;
+
+    // Wish message lines
+    const lines = theme.message.split('\n');
+    document.getElementById('card-msg-line1').textContent = lines[0] || '';
+    document.getElementById('card-msg-line2').textContent = lines[1] || '';
+    document.getElementById('card-msg-line3').textContent = lines[2] || '';
+
+    // Signature name
+    document.getElementById('signature-name').style.color = theme.accent;
+    document.getElementById('signature-name').style.textShadow = `0 0 20px ${theme.accent}66`;
+
+    // Star dots
+    document.querySelectorAll('.star-small').forEach(el => el.style.background = theme.accentLight);
+
+    // Corners
+    document.querySelectorAll('.corner path, .corner circle').forEach(el => {
+      if (el.getAttribute('stroke')) el.setAttribute('stroke', theme.accent);
+      if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none') el.setAttribute('fill', theme.accent);
+    });
+
+    // Lantern strokes
+    document.querySelectorAll('.lantern-left *, .lantern-right *').forEach(el => {
+      if (el.getAttribute('stroke')) el.setAttribute('stroke', theme.accent);
+      if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none' && el.getAttribute('fill') !== '#080c12') el.setAttribute('fill', theme.accent);
+    });
+
+    // Top arch bar
+    document.querySelector('.arch-motif').style.background =
+      `linear-gradient(90deg, transparent 0%, ${theme.accentDim} 20%, ${theme.accent} 50%, ${theme.accentDim} 80%, transparent 100%)`;
+
+    // Geo pattern
+    document.querySelectorAll('.geo-hex, .geo-hex-inner').forEach(el => el.setAttribute('stroke', theme.accent));
+    document.querySelectorAll('.geo-circle').forEach(el => el.setAttribute('stroke', theme.accent));
+  }
+
+  function generateCard() {
+    const roll = document.getElementById('roll-input').value.trim();
+    const errorEl = document.getElementById('error-msg');
+    const wrapper = document.getElementById('card-wrapper');
+
+    if (!roll) {
+      errorEl.textContent = 'Please enter a roll number.';
+      wrapper.classList.remove('visible');
+      return;
+    }
+
+    const name = rollData[roll];
+
+    if (!name) {
+      errorEl.textContent = `No entry found for this roll`;
+      wrapper.classList.remove('visible');
+      return;
+    }
+
+    errorEl.textContent = '';
+    document.getElementById('card-name').textContent = name;
+
+    // Signature: seniors get "Your junior", friends get "Your friend"
+    const isSenior = isSeniorEntry(roll);
+    document.getElementById('signature-label').textContent = isSenior ? 'Your junior' : 'Your friend';
+
+    const theme = getThemeForRoll(roll);
+    applyTheme(theme);
+
+    // Animate in
+    wrapper.classList.remove('visible');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        wrapper.classList.add('visible');
+      });
+    });
+  }
+
+  async function downloadCard() {
+    const card = document.getElementById('eid-card');
+    try {
+      const canvas = await html2canvas(card, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      const link = document.createElement('a');
+      const name = document.getElementById('card-name').textContent.replace(/[^a-zA-Z0-9]/g,'_');
+      link.download = `EidCard_${name}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch(e) {
+      alert('Download failed. Please try a screenshot instead.');
+    }
+  }
+
+  window.addEventListener('load', () => {
+    document.getElementById('roll-input').focus();
+    loadFromSupabase();
+  });
+
+  // ── Supabase Config ───────────────────────────────────────────
+  const SUPABASE_URL = 'https://njgvxibfhszhtumvhoos.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qZ3Z4aWJmaHN6aHR1bXZob29zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjE2ODksImV4cCI6MjA4OTM5NzY4OX0.S8KZUvQ_QkbkR9RX7OpbNgSMkpwTqyG2piQ23GiQy_E';
+
+  async function sbFetch(path, options = {}) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      ...options,
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+        ...(options.headers || {})
+      }
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(err);
+    }
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  }
+
+  // Load all custom entries from Supabase into rollData
+  async function loadFromSupabase() {
+    try {
+      const rows = await sbFetch('roll_entries?select=roll,name,type');
+      if (rows && rows.length) {
+        rows.forEach(r => { rollData[r.roll] = r.name; });
+      }
+    } catch(e) {
+      console.warn('Supabase load failed, using built-in data only.', e);
+    }
+  }
+
+  // ── Admin Dashboard ───────────────────────────────────────────
+  const ADMIN_PASSWORD = 'hayat2421';
+  let adminUnlocked = false;
+  let supabaseEntries = {}; // tracks which rolls came from Supabase
+
+  function isSeniorEntry(roll) {
+    // If it's in supabase entries, use stored type
+    if (supabaseEntries[roll]) return supabaseEntries[roll] === 'senior';
+    return !roll.startsWith('2421');
+  }
+
+  function openAdmin() {
+    document.getElementById('admin-modal').classList.add('open');
+    if (!adminUnlocked) setTimeout(() => document.getElementById('pw-input').focus(), 100);
+    else { loadDashboard(); }
+  }
+
+  function closeAdmin() {
+    document.getElementById('admin-modal').classList.remove('open');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('admin-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeAdmin();
+    });
+  });
+
+  function checkPassword() {
+    const val = document.getElementById('pw-input').value;
+    if (val === ADMIN_PASSWORD) {
+      adminUnlocked = true;
+      document.getElementById('pw-screen').style.display = 'none';
+      document.getElementById('dash-screen').classList.add('active');
+      loadDashboard();
+    } else {
+      document.getElementById('pw-error').textContent = 'Wrong password. Try again.';
+      document.getElementById('pw-input').value = '';
+      document.getElementById('pw-input').focus();
+    }
+  }
+
+  async function loadDashboard() {
+    const list = document.getElementById('entry-list');
+    list.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text-dim);font-style:italic;">Loading…</div>';
+    try {
+      const rows = await sbFetch('roll_entries?select=roll,name,type&order=roll.asc');
+      supabaseEntries = {};
+      if (rows) rows.forEach(r => {
+        supabaseEntries[r.roll] = r.type;
+        rollData[r.roll] = r.name;
+      });
+      renderList();
+      updateStats();
+    } catch(e) {
+      list.innerHTML = '<div style="padding:1rem;text-align:center;color:#e07070;font-style:italic;">Failed to load. Check connection.</div>';
+    }
+  }
+
+  async function addEntry() {
+    const roll = document.getElementById('new-roll').value.trim();
+    const name = document.getElementById('new-name').value.trim();
+    const type = document.getElementById('new-type').value;
+    const fb = document.getElementById('add-feedback');
+
+    if (!roll || !name) {
+      fb.textContent = 'Please fill in both roll and name.'; fb.className = 'dash-add-feedback err'; return;
+    }
+
+    fb.textContent = 'Saving…'; fb.className = 'dash-add-feedback';
+
+    try {
+      await sbFetch('roll_entries', {
+        method: 'POST',
+        headers: { 'Prefer': 'resolution=merge-duplicates' },
+        body: JSON.stringify({ roll, name, type })
+      });
+      rollData[roll] = name;
+      supabaseEntries[roll] = type;
+      fb.textContent = `✓ Added: ${roll} → ${name}`; fb.className = 'dash-add-feedback ok';
+      document.getElementById('new-roll').value = '';
+      document.getElementById('new-name').value = '';
+      document.getElementById('new-roll').focus();
+      renderList(); updateStats();
+      setTimeout(() => { fb.textContent = ''; }, 3000);
+    } catch(e) {
+      fb.textContent = 'Failed to save. Try again.'; fb.className = 'dash-add-feedback err';
+    }
+  }
+
+  async function deleteEntry(roll) {
+    if (!supabaseEntries[roll]) return; // can't delete built-ins
+    try {
+      await sbFetch(`roll_entries?roll=eq.${encodeURIComponent(roll)}`, { method: 'DELETE' });
+      delete rollData[roll];
+      delete supabaseEntries[roll];
+      renderList(); updateStats();
+    } catch(e) {
+      alert('Failed to delete. Try again.');
+    }
+  }
+
+  function updateStats() {
+    const all = Object.keys(rollData);
+    document.getElementById('stat-total').textContent = all.length;
+    document.getElementById('stat-friends').textContent = all.filter(r => !isSeniorEntry(r)).length;
+    document.getElementById('stat-seniors').textContent = all.filter(r => isSeniorEntry(r)).length;
+  }
+
+  function renderList() {
+    const query = (document.getElementById('dash-search')?.value || '').toLowerCase();
+    const filtered = Object.keys(rollData).sort()
+      .filter(r => r.includes(query) || rollData[r].toLowerCase().includes(query));
+
+    const list = document.getElementById('entry-list');
+    if (!filtered.length) {
+      list.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text-dim);font-style:italic;">No entries found</div>';
+      return;
+    }
+    list.innerHTML = filtered.map(roll => {
+      const name = rollData[roll];
+      const isSupabase = !!supabaseEntries[roll];
+      const senior = isSeniorEntry(roll);
+      const tagLabel = isSupabase ? (senior ? 'Senior' : 'Friend') : 'Built-in';
+      const tagClass = isSupabase ? (senior ? 'senior' : 'friend') : 'builtin';
+      return `<div class="entry-row">
+        <div class="entry-row-info">
+          <span class="entry-roll">${roll}</span>
+          <span class="entry-name">${name}</span>
+          <span class="entry-tag ${tagClass}">${tagLabel}</span>
+        </div>
+        <button class="btn-delete" onclick="deleteEntry('${roll}')"
+          ${isSupabase ? '' : 'disabled title="Built-in entries cannot be deleted"'}>✕</button>
+      </div>`;
+    }).join('');
+  }
+</script>
+<!-- Admin button -->
+<button class="admin-btn" onclick="openAdmin()" title="Admin Dashboard">⚙</button>
+
+<!-- Admin modal -->
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>Admin Dashboard</span>
+      <button class="modal-close" onclick="closeAdmin()">✕</button>
+    </div>
+
+    <!-- Password screen -->
+    <div class="pw-screen" id="pw-screen">
+      <p>Enter the admin password to continue</p>
+      <input type="password" id="pw-input" placeholder="Password"
+        onkeydown="if(event.key==='Enter') checkPassword()" />
+      <button class="btn-add" onclick="checkPassword()">Unlock</button>
+      <div class="pw-error" id="pw-error"></div>
+    </div>
+
+    <!-- Dashboard screen -->
+    <div class="dash-screen" id="dash-screen">
+      <div class="dash-stats">
+        <div class="stat-pill">Total: <span id="stat-total">0</span></div>
+        <div class="stat-pill">Friends: <span id="stat-friends">0</span></div>
+        <div class="stat-pill">Seniors: <span id="stat-seniors">0</span></div>
+      </div>
+
+      <div class="dash-section-title">Add New Entry</div>
+      <div class="dash-add-row">
+        <input type="text" id="new-roll" placeholder="Roll number" maxlength="20" />
+        <input type="text" id="new-name" placeholder="Name" maxlength="40"
+          onkeydown="if(event.key==='Enter') addEntry()" />
+        <select id="new-type">
+          <option value="friend">Friend</option>
+          <option value="senior">Senior</option>
+        </select>
+        <button class="btn-add" onclick="addEntry()">Add ✦</button>
+      </div>
+      <div class="dash-add-feedback" id="add-feedback"></div>
+
+      <div class="dash-section-title">All Entries</div>
+      <input class="dash-search" id="dash-search" placeholder="Search by roll or name…"
+        oninput="renderList()" />
+      <div class="entry-list" id="entry-list"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
