@@ -21,6 +21,116 @@
     --text-dim: #8a7d62;
     --glow: rgba(201,168,76,0.18);
     --crescent: #f0d080;
+    --transition-theme: background 0.4s, color 0.4s, border-color 0.4s, box-shadow 0.4s;
+  }
+
+  /* ── Light mode — warm parchment ── */
+  body.light {
+    --gold: #8b5e1a;
+    --gold-light: #6b4510;
+    --gold-dim: #b8862a;
+    --bg: #f7f2e8;
+    --surface: #fffef9;
+    --surface2: #f0e9d6;
+    --text: #2e1f0a;
+    --text-dim: #7a6040;
+    --glow: rgba(139,94,26,0.12);
+    --crescent: #b8862a;
+  }
+
+  /* Light mode — hide starfield, add soft warm gradient instead */
+  body.light::before {
+    background-image:
+      radial-gradient(ellipse 100% 60% at 50% -5%, rgba(184,134,42,0.07) 0%, transparent 65%),
+      radial-gradient(ellipse 70% 50% at 90% 110%, rgba(139,94,26,0.05) 0%, transparent 60%);
+  }
+
+  /* Light mode card — shadow only, colors handled by JS applyTheme */
+  body.light #eid-card {
+    box-shadow: 0 2px 24px rgba(0,0,0,0.1), 0 0 0 1px rgba(100,70,20,0.15);
+  }
+
+  /* Light mode modal */
+  body.light .modal {
+    box-shadow: 0 4px 32px rgba(0,0,0,0.1);
+  }
+
+  /* Light mode modal overlay */
+  body.light .modal-overlay { background: rgba(60,35,5,0.45); }
+
+  /* Light mode inputs */
+  body.light .input-wrap input,
+  body.light .dash-add-row input,
+  body.light .dash-add-row select,
+  body.light .dash-search,
+  body.light .pw-screen input {
+    background: #f7f2e8;
+    color: #2e1f0a;
+  }
+
+  /* Light mode generate button */
+  body.light button.generate-btn {
+    background: linear-gradient(135deg, #b8862a 0%, #8b5e1a 50%, #b8862a 100%);
+    color: #fffef9;
+  }
+
+  /* Light mode error */
+  body.light .error-msg { color: #b83030; }
+
+  /* Light mode entry rows */
+  body.light .entry-row:hover { background: rgba(139,94,26,0.05); }
+  body.light .entry-row { border-bottom-color: rgba(139,94,26,0.1); }
+  body.light .entry-list { border-color: rgba(139,94,26,0.15); }
+
+  /* Light mode stat pills */
+  body.light .stat-pill {
+    background: rgba(139,94,26,0.07);
+    border-color: rgba(139,94,26,0.18);
+    color: #5a3d10;
+  }
+  body.light .stat-pill span { color: #8b5e1a; }
+
+  /* Light mode tags */
+  body.light .entry-tag.friend { background: rgba(139,94,26,0.12); color: #6b4510; }
+  body.light .entry-tag.senior { background: rgba(40,80,160,0.1); color: #1a4080; }
+  body.light .entry-tag.builtin { background: rgba(0,0,0,0.05); color: #6a5540; }
+
+  /* Light mode admin/theme buttons */
+  body.light .admin-btn,
+  body.light .theme-toggle {
+    background: #f0e9d6;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+
+  /* Light mode dl button */
+  body.light button.dl-btn {
+    color: #8b5e1a;
+    border-color: #b8862a;
+  }
+  body.light button.dl-btn:hover { background: rgba(139,94,26,0.07); }
+
+  body { transition: var(--transition-theme); }
+
+  /* Light mode starfield — hide stars, show soft pattern instead */
+  body.light::before {
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(160,108,26,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(200,146,42,0.06) 0%, transparent 60%);
+  }
+
+  /* Light mode modal */
+  body.light .modal {
+    box-shadow: 0 8px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(160,108,26,0.15);
+  }
+
+  /* Light mode error */
+  body.light .error-msg { color: #c0392b; }
+
+  /* Input transitions */
+  .input-wrap input, button.generate-btn, .modal, .entry-row,
+  .stat-pill, .dash-add-row input, .dash-add-row select, .dash-search,
+  .admin-btn, .theme-toggle, button.dl-btn, .entry-list, .modal-overlay {
+    transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
   }
 
   body {
@@ -379,10 +489,28 @@
     cursor: pointer;
     font-size: 1.2rem;
     color: var(--gold-dim);
-    transition: border-color 0.3s, color 0.3s, box-shadow 0.3s;
+    transition: border-color 0.3s, color 0.3s, box-shadow 0.3s, background 0.4s;
     box-shadow: 0 2px 12px rgba(0,0,0,0.4);
   }
   .admin-btn:hover { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 16px var(--glow); }
+
+  .theme-toggle {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 100;
+    background: var(--surface2);
+    border: 1px solid var(--gold-dim);
+    border-radius: 50%;
+    width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: var(--gold-dim);
+    transition: border-color 0.3s, color 0.3s, box-shadow 0.3s, background 0.4s;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  .theme-toggle:hover { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 16px var(--glow); }
 
   /* ── Modal overlay ── */
   .modal-overlay {
@@ -664,7 +792,7 @@
 
     <!-- Arabic greeting -->
     <div class="arabic-greeting" id="arabic-greeting-el">عيد مبارك</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:0.9rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:0.3rem;">EID MUBARAK</div>
+    <div class="eid-mubarak-sub" style="font-family:'Cormorant Garamond',serif;font-size:0.9rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:0.3rem;">EID MUBARAK</div>
 
     <!-- Divider -->
     <div class="divider">
@@ -894,22 +1022,152 @@
     },
   ];
 
+  // ── 16 LIGHT card themes ──────────────────────────────────────
+  const lightThemes = [
+    {
+      bg: '#fffbf0', topGlow: 'rgba(201,168,76,0.18)', bottomGlow: 'rgba(240,210,140,0.15)',
+      accent: '#8b5e1a', accentLight: '#5a3a08', accentDim: '#c8922a',
+      textColor: '#2e1a06', textDim: '#7a5828',
+      message: "May this Eid fill your home with light,\nyour heart with warmth,\nand your days with blessings.",
+      dua: "تَقَبَّلَ اللهُ مِنَّا وَمِنْكُمْ"
+    },
+    {
+      bg: '#f0fbf3', topGlow: 'rgba(40,160,80,0.15)', bottomGlow: 'rgba(120,220,150,0.12)',
+      accent: '#1a6b38', accentLight: '#0d4020', accentDim: '#4aaa6a',
+      textColor: '#0a2a14', textDim: '#3a6a48',
+      message: "Eid Mubarak! May Allah shower\nyou with His infinite mercy\nand boundless grace.",
+      dua: "عِيدُكُمْ مُبَارَكٌ"
+    },
+    {
+      bg: '#fff0f7', topGlow: 'rgba(200,60,130,0.12)', bottomGlow: 'rgba(240,160,200,0.12)',
+      accent: '#8b1a50', accentLight: '#5a0830', accentDim: '#c84080',
+      textColor: '#2e0618', textDim: '#7a2848',
+      message: "Wishing you an Eid adorned\nwith smiles, laughter,\nand sweet memories.",
+      dua: "كُلَّ عَامٍ وَأَنْتَ بِخَيْرٍ"
+    },
+    {
+      bg: '#f0f5ff', topGlow: 'rgba(60,110,220,0.13)', bottomGlow: 'rgba(140,180,255,0.12)',
+      accent: '#1a3a8b', accentLight: '#08205a', accentDim: '#4068c8',
+      textColor: '#060e2e', textDim: '#284078',
+      message: "May Allah accept your prayers,\nforgive your sins,\nand ease all your difficulties.",
+      dua: "تَقَبَّلَ اللهُ مِنَّا وَمِنْكُمْ"
+    },
+    {
+      bg: '#fff7f0', topGlow: 'rgba(220,100,30,0.13)', bottomGlow: 'rgba(255,190,140,0.12)',
+      accent: '#8b3a1a', accentLight: '#5a1a08', accentDim: '#c86030',
+      textColor: '#2e0e06', textDim: '#7a3820',
+      message: "On this blessed Eid, may your\nduaas be answered and your\nsteps guided to goodness.",
+      dua: "عِيدُكُمْ مُبَارَكٌ"
+    },
+    {
+      bg: '#f5f0ff', topGlow: 'rgba(110,70,210,0.13)', bottomGlow: 'rgba(190,160,255,0.12)',
+      accent: '#4a1a8b', accentLight: '#28085a', accentDim: '#7848c8',
+      textColor: '#100620', textDim: '#4a2878',
+      message: "May the spirit of Eid bring\njoy to your heart and peace\nto your soul, always.",
+      dua: "كُلَّ عَامٍ وَأَنْتَ بِخَيْرٍ"
+    },
+    {
+      bg: '#f0fbfd', topGlow: 'rgba(20,160,180,0.13)', bottomGlow: 'rgba(120,220,240,0.12)',
+      accent: '#0e5a68', accentLight: '#083840', accentDim: '#2898a8',
+      textColor: '#041820', textDim: '#205860',
+      message: "This Eid, may you be surrounded\nby loved ones and blessed\nwith abundance and serenity.",
+      dua: "تَقَبَّلَ اللهُ مِنَّا وَمِنْكُمْ"
+    },
+    {
+      bg: '#fdfbf0', topGlow: 'rgba(180,160,20,0.14)', bottomGlow: 'rgba(240,230,120,0.12)',
+      accent: '#6b5808', accentLight: '#3a3004', accentDim: '#a89020',
+      textColor: '#1e1804', textDim: '#6a5020',
+      message: "Eid Mubarak! May every prayer\nyou whisper find its way\nto the heavens above.",
+      dua: "عِيدُكُمْ مُبَارَكٌ"
+    },
+    {
+      bg: '#f0fcfc', topGlow: 'rgba(20,150,150,0.13)', bottomGlow: 'rgba(120,220,220,0.12)',
+      accent: '#0e6868', accentLight: '#084040', accentDim: '#28a0a0',
+      textColor: '#041c1c', textDim: '#206060',
+      message: "May this Eid be a new chapter\nof happiness, health,\nand divine blessings for you.",
+      dua: "كُلَّ عَامٍ وَأَنْتَ بِخَيْرٍ"
+    },
+    {
+      bg: '#fff0f0', topGlow: 'rgba(200,40,40,0.12)', bottomGlow: 'rgba(255,160,160,0.12)',
+      accent: '#8b1a1a', accentLight: '#5a0808', accentDim: '#c84040',
+      textColor: '#2e0606', textDim: '#7a2828',
+      message: "Eid Mubarak! Sending you\nwarmth, love and sincerest\nblessings on this holy day.",
+      dua: "تَقَبَّلَ اللهُ مِنَّا وَمِنْكُمْ"
+    },
+    {
+      bg: '#f3fbed', topGlow: 'rgba(70,180,30,0.13)', bottomGlow: 'rgba(160,240,120,0.12)',
+      accent: '#2a6810', accentLight: '#144008', accentDim: '#58a830',
+      textColor: '#0c2004', textDim: '#386820',
+      message: "May the crescent moon above\nguide your path to joy,\npeace and prosperity always.",
+      dua: "عِيدُكُمْ مُبَارَكٌ"
+    },
+    {
+      bg: '#f5f0fd', topGlow: 'rgba(90,50,210,0.13)', bottomGlow: 'rgba(180,150,255,0.12)',
+      accent: '#3a1880', accentLight: '#1e0850', accentDim: '#6840c0',
+      textColor: '#0e0620', textDim: '#402070',
+      message: "On this joyous Eid, may\nAllah's mercy rain upon you\nlike stars fill the night sky.",
+      dua: "كُلَّ عَامٍ وَأَنْتَ بِخَيْرٍ"
+    },
+    {
+      bg: '#fdf8f0', topGlow: 'rgba(200,140,20,0.14)', bottomGlow: 'rgba(255,210,120,0.12)',
+      accent: '#7a4e08', accentLight: '#4a2c04', accentDim: '#b87828',
+      textColor: '#221404', textDim: '#604820',
+      message: "Eid Mubarak! May this blessed\nday mark the beginning of\nyour happiest days yet.",
+      dua: "تَقَبَّلَ اللهُ مِنَّا وَمِنْكُمْ"
+    },
+    {
+      bg: '#f0fdf8', topGlow: 'rgba(20,180,120,0.13)', bottomGlow: 'rgba(120,240,190,0.12)',
+      accent: '#0e6848', accentLight: '#084028', accentDim: '#28a878',
+      textColor: '#041c10', textDim: '#206048',
+      message: "May Allah bless every corner\nof your life with love,\nlaughter and endless peace.",
+      dua: "عِيدُكُمْ مُبَارَكٌ"
+    },
+    {
+      bg: '#fff5f0', topGlow: 'rgba(210,80,20,0.12)', bottomGlow: 'rgba(255,180,140,0.12)',
+      accent: '#7a2e10', accentLight: '#4a1608', accentDim: '#b85828',
+      textColor: '#220c04', textDim: '#6a3018',
+      message: "This Eid, may your heart be\nlight as the crescent moon\nand your smile never fade.",
+      dua: "كُلَّ عَامٍ وَأَنْتَ بِخَيْرٍ"
+    },
+    {
+      bg: '#f0f6ff', topGlow: 'rgba(30,90,210,0.13)', bottomGlow: 'rgba(130,170,255,0.12)',
+      accent: '#0e2e7a', accentLight: '#081848', accentDim: '#2858c0',
+      textColor: '#040c20', textDim: '#183060',
+      message: "Eid Mubarak! May this festival\nbring you closer to Allah\nand to all you hold dear.",
+      dua: "تَقَبَّلَ اللهُ مِنَّا وَمِنْكُمْ"
+    },
+  ];
+
   // Deterministic theme per roll (always same theme for same roll)
   function getThemeForRoll(roll) {
     let hash = 0;
     for (let i = 0; i < roll.length; i++) {
       hash = (hash * 31 + roll.charCodeAt(i)) % themes.length;
     }
-    return themes[hash];
+    const isLight = document.body.classList.contains('light');
+    return isLight ? lightThemes[hash] : themes[hash];
   }
 
   function applyTheme(theme) {
     const card = document.getElementById('eid-card');
+    const isLight = document.body.classList.contains('light');
 
     // Background
     card.style.background = theme.bg;
 
-    // CSS gradient overlay via pseudo — we use a real element instead
+    // Text colors — light themes need dark text, dark themes need light text
+    const textColor = isLight ? (theme.textColor || '#2e1a06') : '#e8dfc8';
+    const textDim = isLight ? (theme.textDim || '#7a5828') : '#8a7d62';
+    card.style.color = textColor;
+
+    // Apply text color to message, signature label, eid mubarak subtitle
+    document.getElementById('card-msg-line1').style.color = textColor;
+    document.getElementById('card-msg-line2').style.color = textColor;
+    document.getElementById('card-msg-line3').style.color = textColor;
+    document.querySelector('#eid-card .eid-mubarak-sub').style.color = textDim;
+    document.getElementById('signature-label').style.color = textDim;
+
+    // CSS gradient overlay
     document.getElementById('card-bg-overlay').style.background =
       `radial-gradient(ellipse 70% 50% at 50% 0%, ${theme.topGlow} 0%, transparent 70%),
        radial-gradient(ellipse 60% 40% at 50% 100%, ${theme.bottomGlow} 0%, transparent 70%)`;
@@ -917,30 +1175,34 @@
     // Border
     card.style.borderColor = theme.accentDim;
 
-    // Accent colors via CSS vars on card
-    card.style.setProperty('--t-accent', theme.accent);
-    card.style.setProperty('--t-accentLight', theme.accentLight);
-    card.style.setProperty('--t-accentDim', theme.accentDim);
-
     // Crescent fill
     document.querySelectorAll('.crescent-path').forEach(el => {
-      el.style.fill = theme.accentLight;
-      el.setAttribute('fill', theme.accentLight);
+      el.style.fill = theme.accentDim;
+      el.setAttribute('fill', theme.accentDim);
     });
 
     // Arabic greeting
     document.getElementById('arabic-greeting-el').style.color = theme.accent;
-    document.getElementById('arabic-greeting-el').style.textShadow = `0 0 30px ${theme.accent}88, 0 0 60px ${theme.accent}33`;
+    document.getElementById('arabic-greeting-el').style.textShadow = isLight
+      ? `0 0 20px ${theme.accentDim}66`
+      : `0 0 30px ${theme.accent}88, 0 0 60px ${theme.accent}33`;
 
     // Crescent glow filter
-    document.querySelector('.crescent-wrap').style.filter = `drop-shadow(0 0 18px ${theme.accentLight}88)`;
+    document.querySelector('.crescent-wrap').style.filter = `drop-shadow(0 0 14px ${theme.accentDim}99)`;
 
     // Name color
     document.getElementById('card-name').style.color = theme.accentLight;
-    document.getElementById('card-name').style.textShadow = `0 0 40px ${theme.accentLight}66`;
+    document.getElementById('card-name').style.textShadow = isLight
+      ? `none`
+      : `0 0 40px ${theme.accentLight}66`;
 
     // Divider diamonds
     document.querySelectorAll('.divider-diamond').forEach(el => el.style.background = theme.accent);
+
+    // Divider lines
+    document.querySelectorAll('.divider-line').forEach(el => {
+      el.style.background = `linear-gradient(90deg, transparent, ${theme.accentDim}, transparent)`;
+    });
 
     // Message dua
     document.getElementById('card-dua').style.color = theme.accent;
@@ -954,10 +1216,10 @@
 
     // Signature name
     document.getElementById('signature-name').style.color = theme.accent;
-    document.getElementById('signature-name').style.textShadow = `0 0 20px ${theme.accent}66`;
+    document.getElementById('signature-name').style.textShadow = isLight ? 'none' : `0 0 20px ${theme.accent}66`;
 
     // Star dots
-    document.querySelectorAll('.star-small').forEach(el => el.style.background = theme.accentLight);
+    document.querySelectorAll('.star-small').forEach(el => el.style.background = theme.accentDim);
 
     // Corners
     document.querySelectorAll('.corner path, .corner circle').forEach(el => {
@@ -976,8 +1238,8 @@
       `linear-gradient(90deg, transparent 0%, ${theme.accentDim} 20%, ${theme.accent} 50%, ${theme.accentDim} 80%, transparent 100%)`;
 
     // Geo pattern
-    document.querySelectorAll('.geo-hex, .geo-hex-inner').forEach(el => el.setAttribute('stroke', theme.accent));
-    document.querySelectorAll('.geo-circle').forEach(el => el.setAttribute('stroke', theme.accent));
+    document.querySelectorAll('.geo-hex, .geo-hex-inner').forEach(el => el.setAttribute('stroke', theme.accentDim));
+    document.querySelectorAll('.geo-circle').forEach(el => el.setAttribute('stroke', theme.accentDim));
   }
 
   function generateCard() {
@@ -1054,7 +1316,25 @@
     }
   }
 
+  // ── Theme toggle ──────────────────────────────────────────────
+  function toggleTheme() {
+    const isLight = document.body.classList.toggle('light');
+    localStorage.setItem('eid_theme', isLight ? 'light' : 'dark');
+    document.getElementById('theme-toggle').textContent = isLight ? '☀️' : '🌙';
+    // Re-apply card theme if a card is currently visible
+    const roll = document.getElementById('roll-input').value.trim();
+    if (roll && rollData[roll] && document.getElementById('card-wrapper').classList.contains('visible')) {
+      applyTheme(getThemeForRoll(roll));
+    }
+  }
+
   window.addEventListener('load', () => {
+    // Apply saved theme
+    const saved = localStorage.getItem('eid_theme');
+    if (saved === 'light') {
+      document.body.classList.add('light');
+      document.getElementById('theme-toggle').textContent = '☀️';
+    }
     document.getElementById('roll-input').focus();
     loadFromSupabase();
   });
@@ -1261,6 +1541,9 @@
     } catch(e) { fb.textContent='Failed to update.'; fb.className='dash-add-feedback err'; }
   }
 </script>
+
+<!-- Theme toggle -->
+<button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark">🌙</button>
 
 <!-- Admin button -->
 <button class="admin-btn" onclick="_oa()" title="Admin Dashboard">⚙</button>
